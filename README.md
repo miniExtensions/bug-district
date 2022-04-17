@@ -3,9 +3,9 @@
 `yarn add --dev bug-district`
 
 
-## Initialize your first actions
+## Initialize your first action
 
-1. Instal [@testing-library/dom](https://testing-library.com/docs/dom-testing-library/install).
+1. Install [@testing-library/dom](https://testing-library.com/docs/dom-testing-library/install).
 2. Create a file named "bug-district.ts" in your code and add the following contents to it:
 ```
 import { initializeTestActions, ActionRunner } from 'bug-district';
@@ -13,10 +13,16 @@ import { screen, waitFor } from '@testing-library/dom';
 
 const actionRunners: ActionRunner[] = [
   {
-    // An example of an action that checks if a text is on the screen
+    // An example of an action that checks if a text is on the screen.
     id: 'check-text-is-visible-on-screen',
+    
+    // A label to be shown in the test runner.
     label: 'Check that text is visible on screen',
+    
+    // Arguments that can be set in the test runner.
     arguments: [{ id: 'text' }],
+    
+    // The function that will run when the action is triggered.
     run: async (data) => {
         const { text } = data.args;
         await waitFor(
@@ -29,13 +35,11 @@ const actionRunners: ActionRunner[] = [
                     );
                 }
             },
-            { timeout: 20000 }
-        ).catch((e) => {
-            throw e;
-        });
+        )
    },
 ];
 
+// Initialize the actions that will run in your tests
 initializeTestActions({ actions: actionRunners });
 ```
 3. Import `bug-district.ts` somewhere in your app:
@@ -43,7 +47,7 @@ initializeTestActions({ actions: actionRunners });
 `import './bug-district'`
 
 4. Login with your Github account on [Bug District](https://bug-district.vercel.app/)
-5. Go to the Github repo that you want to add tests
+5. Go to the Github repo that you want to add tests to
 6. Select a branch (e.g. master)
 7. Add a test case
 8. Add actions and run your test case!
