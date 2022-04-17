@@ -54,3 +54,20 @@ initializeTestActions({ actions: actionRunners });
 
 
 ### NOTE: You must use Chrome to run the tests on [Bug District](https://bug-district.vercel.app/). You will also need to enable "Insecure origins treated as secure". Navigate to chrome://flags/ to enable the option.
+
+
+
+## Run all tests
+
+To run all of your tests, add the following script to your "package.json" file.
+
+```
+"run-ui-tests": "node ./node_modules/bug-district/dist/runTestSuite.js ./ui-tester-test-suite.json PORT"
+```
+
+Replace `PORT` with your localhost post where your website runs (e.g. `3000`). If the parth the the node_modules or the test-suite needs to be changed, then make sure to change it in the script.
+
+You can then run the script like this:
+```
+yarn run-ui-tests
+```
