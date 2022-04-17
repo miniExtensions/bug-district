@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable no-async-promise-executor */
-/* eslint-disable prefer-arrow-functions/prefer-arrow-functions */
-
 import * as puppeteer from "puppeteer";
 import * as fs from "fs";
 import * as path from "path";
