@@ -46,10 +46,10 @@ initializeTestActions({ actions: actionRunners });
 
 `import './bug-district'`
 
-4. Login with your Github account on [Bug District](https://bug-district.vercel.app/)
-5. Go to the Github repo that you want to add tests to
-6. Select a branch (e.g. master)
-7. Add a test case
+4. Run your localhost web server (e.g. `yarn dev` or `yarn start`).
+5. Login with your Github account on [Bug District](https://bug-district.vercel.app/)
+6. Go to the Github repo that you want to add tests to on Bug District, then select a branch  (e.g. master)
+7. Add a test case on Bug District
 8. Add actions and run your test case!
 
 
