@@ -1,0 +1,52 @@
+{
+  "name": "bug-district",
+  "source": "",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "keywords": [
+    "react",
+    "test",
+    "testing",
+    "library",
+    "ui",
+    "jsdom",
+    "end-to-end",
+    "e2e",
+    "debug",
+    "render",
+    "visualize",
+    "see",
+    "view",
+    "browser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miniextensions/bug-district.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/miniextensions/bug-district/issues"
+  },
+  "homepage": "https://github.com/miniextensions/bug-district#readme",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "yarn build"
+  },
+  "dependencies": {
+    "@testing-library/dom": "^8.7.2",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.2.1",
+    "expect": "^27.5.1",
+    "module": "^1.2.5",
+    "puppeteer": "^13.5.2"
+  },
+  "devDependencies": {
+    "@types/emojione": "^2.2.6",
+    "emojione": "^4.5.0",
+    "microbundle": "^0.14.2",
+    "typescript": "^4.6.3"
+  }
+}
