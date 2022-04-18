@@ -41,9 +41,10 @@ exports.wait = void 0;
 var puppeteer = require("puppeteer");
 var fs = require("fs");
 var path = require("path");
+var defaultBugDistrictDomain = "https://bug-district.vercel.app";
 var pathArg = (_a = process.argv[2]) !== null && _a !== void 0 ? _a : null;
 var localhostPort = (_b = process.argv[3]) !== null && _b !== void 0 ? _b : null;
-var domainForBugDistrict = (_c = process.argv[4]) !== null && _c !== void 0 ? _c : "https://bug-district.vercel.app";
+var domainForBugDistrict = (_c = process.argv[4]) !== null && _c !== void 0 ? _c : defaultBugDistrictDomain;
 if (!pathArg) {
     throw new Error("Please provide a path to the test suite");
 }
@@ -70,7 +71,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                         }
                         jsonContent = data;
                         return [4 /*yield*/, puppeteer.launch({
-                                dumpio: false,
+                                dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
                                 headless: true,
                             })];
                     case 1:
