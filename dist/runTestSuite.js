@@ -1,8 +1,4 @@
 "use strict";
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable no-async-promise-executor */
-/* eslint-disable prefer-arrow-functions/prefer-arrow-functions */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wait = void 0;
 var puppeteer = require("puppeteer");
@@ -47,6 +43,7 @@ var fs = require("fs");
 var path = require("path");
 var pathArg = (_a = process.argv[2]) !== null && _a !== void 0 ? _a : null;
 var localhostPort = (_b = process.argv[3]) !== null && _b !== void 0 ? _b : null;
+var domainForBugDistrict = (_c = process.argv[4]) !== null && _c !== void 0 ? _c : "https://bug-district.vercel.app";
 if (!pathArg) {
     throw new Error("Please provide a path to the test suite");
 }
@@ -84,7 +81,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                         return [4 /*yield*/, page.setCacheEnabled(false)];
                     case 3:
                         _a.sent();
-                        return [4 /*yield*/, page.goto("https://bug-district.vercel.app/run-all-on-ci")];
+                        return [4 /*yield*/, page.goto("".concat(domainForBugDistrict, "/run-all-on-ci"))];
                     case 4:
                         _a.sent();
                         onSuccess = function () {

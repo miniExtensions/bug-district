@@ -4,6 +4,8 @@ import * as path from "path";
 
 const pathArg = process.argv[2] ?? null;
 const localhostPort = process.argv[3] ?? null;
+const domainForBugDistrict =
+  process.argv[4] ?? "https://bug-district.vercel.app";
 
 if (!pathArg) {
   throw new Error("Please provide a path to the test suite");
@@ -36,7 +38,7 @@ new Promise(async (resolve, reject) => {
     });
     const page = await browser.newPage();
     await page.setCacheEnabled(false);
-    await page.goto(`https://bug-district.vercel.app/run-all-on-ci`);
+    await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
     // await page.goto(`http://localhost:3001/run-all-on-ci`);
 
     const onSuccess = () => {
