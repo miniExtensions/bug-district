@@ -36,18 +36,20 @@ new Promise(async (resolve, reject) => {
 
     const testCases = testSuite.cases;
 
-    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length / 2));
+    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length / 3));
 
     const chunkedTestSuites = chunkedCases.map((cases) => ({
       cases,
     }));
 
-    const jsonContent = data;
-
     const browser = await puppeteer.launch({
       dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
       headless: true,
     });
+
+    const totalSuccessfullTestSuiteChunks = {
+      total: 0,
+    };
 
     await Promise.all(
       chunkedTestSuites.map(async (testSuite) => {
@@ -57,8 +59,14 @@ new Promise(async (resolve, reject) => {
         // await page.goto(`http://localhost:3001/run-all-on-ci`);
 
         const onSuccess = () => {
-          console.log("All tests passed.");
-          process.exit(0);
+          totalSuccessfullTestSuiteChunks.total += 1;
+
+          if (
+            totalSuccessfullTestSuiteChunks.total === chunkedTestSuites.length
+          ) {
+            console.log("All tests passed.");
+            process.exit(0);
+          }
         };
 
         await page.exposeFunction("onSuccess", onSuccess);

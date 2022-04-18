@@ -61,7 +61,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
     return __generator(this, function (_a) {
         // @ts-ignore
         fs.readFile(filePath, "utf8", function (err, data) { return __awaiter(void 0, void 0, void 0, function () {
-            var testSuite, testCases, chunkedCases, chunkedTestSuites, jsonContent, browser;
+            var testSuite, testCases, chunkedCases, chunkedTestSuites, browser, totalSuccessfullTestSuiteChunks;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -72,17 +72,19 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                         }
                         testSuite = JSON.parse(data);
                         testCases = testSuite.cases;
-                        chunkedCases = (0, chunkArray_1.chunkArray)(testCases, Math.ceil(testCases.length / 2));
+                        chunkedCases = (0, chunkArray_1.chunkArray)(testCases, Math.ceil(testCases.length / 3));
                         chunkedTestSuites = chunkedCases.map(function (cases) { return ({
                             cases: cases,
                         }); });
-                        jsonContent = data;
                         return [4 /*yield*/, puppeteer.launch({
                                 dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
                                 headless: true,
                             })];
                     case 1:
                         browser = _a.sent();
+                        totalSuccessfullTestSuiteChunks = {
+                            total: 0,
+                        };
                         return [4 /*yield*/, Promise.all(chunkedTestSuites.map(function (testSuite) { return __awaiter(void 0, void 0, void 0, function () {
                                 var page, onSuccess, onFailure;
                                 return __generator(this, function (_a) {
@@ -97,8 +99,11 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                                         case 3:
                                             _a.sent();
                                             onSuccess = function () {
-                                                console.log("All tests passed.");
-                                                process.exit(0);
+                                                totalSuccessfullTestSuiteChunks.total += 1;
+                                                if (totalSuccessfullTestSuiteChunks.total === chunkedTestSuites.length) {
+                                                    console.log("All tests passed.");
+                                                    process.exit(0);
+                                                }
                                             };
                                             return [4 /*yield*/, page.exposeFunction("onSuccess", onSuccess)];
                                         case 4:
