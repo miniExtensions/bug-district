@@ -80,8 +80,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                                 dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
                                 headless: true,
                             })];
-                    case 1: return [4 /*yield*/, (_a.sent()).createIncognitoBrowserContext()];
-                    case 2:
+                    case 1:
                         browser = _a.sent();
                         totalSuccessfullTestSuiteChunks = {
                             total: 0,
@@ -148,7 +147,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                                     }
                                 });
                             }); }))];
-                    case 3:
+                    case 2:
                         _a.sent();
                         return [2 /*return*/];
                 }
