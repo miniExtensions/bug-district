@@ -2,10 +2,11 @@ import * as puppeteer from "puppeteer";
 import * as fs from "fs";
 import * as path from "path";
 
+const defaultBugDistrictDomain = "https://bug-district.vercel.app";
+
 const pathArg = process.argv[2] ?? null;
 const localhostPort = process.argv[3] ?? null;
-const domainForBugDistrict =
-  process.argv[4] ?? "https://bug-district.vercel.app";
+const domainForBugDistrict = process.argv[4] ?? defaultBugDistrictDomain;
 
 if (!pathArg) {
   throw new Error("Please provide a path to the test suite");
@@ -33,7 +34,7 @@ new Promise(async (resolve, reject) => {
     const jsonContent = data;
 
     const browser = await puppeteer.launch({
-      dumpio: false,
+      dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
       headless: true,
     });
     const page = await browser.newPage();
