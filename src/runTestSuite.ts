@@ -42,10 +42,12 @@ new Promise(async (resolve, reject) => {
       cases,
     }));
 
-    const browser = await puppeteer.launch({
-      dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
-      headless: true,
-    });
+    const browser = await (
+      await puppeteer.launch({
+        dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
+        headless: true,
+      })
+    ).createIncognitoBrowserContext();
 
     const totalSuccessfullTestSuiteChunks = {
       total: 0,
