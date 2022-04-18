@@ -36,16 +36,11 @@ new Promise(async (resolve, reject) => {
 
     const testCases = testSuite.cases;
 
-    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length));
+    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length / 3));
 
     const chunkedTestSuites = chunkedCases.map((cases) => ({
       cases,
     }));
-
-    const browser = await puppeteer.launch({
-      dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
-      headless: true,
-    });
 
     const totalSuccessfullTestSuiteChunks = {
       total: 0,
@@ -53,6 +48,10 @@ new Promise(async (resolve, reject) => {
 
     await Promise.all(
       chunkedTestSuites.map(async (testSuite) => {
+        const browser = await puppeteer.launch({
+          dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
+          headless: true,
+        });
         const page = await browser.newPage();
         await page.setCacheEnabled(false);
         await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
