@@ -36,7 +36,7 @@ new Promise(async (resolve, reject) => {
 
     const testCases = testSuite.cases;
 
-    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length / 3));
+    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length));
 
     const chunkedTestSuites = chunkedCases.map((cases) => ({
       cases,

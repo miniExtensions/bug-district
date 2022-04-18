@@ -72,7 +72,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                         }
                         testSuite = JSON.parse(data);
                         testCases = testSuite.cases;
-                        chunkedCases = (0, chunkArray_1.chunkArray)(testCases, Math.ceil(testCases.length / 3));
+                        chunkedCases = (0, chunkArray_1.chunkArray)(testCases, Math.ceil(testCases.length));
                         chunkedTestSuites = chunkedCases.map(function (cases) { return ({
                             cases: cases,
                         }); });
