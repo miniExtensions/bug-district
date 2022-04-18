@@ -42,16 +42,17 @@ new Promise(async (resolve, reject) => {
       cases,
     }));
 
+    const browser = await puppeteer.launch({
+      dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
+      headless: true,
+    });
+
     const totalSuccessfullTestSuiteChunks = {
       total: 0,
     };
 
     await Promise.all(
       chunkedTestSuites.map(async (testSuite) => {
-        const browser = await puppeteer.launch({
-          dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
-          headless: true,
-        });
         const page = await browser.newPage();
         await page.setCacheEnabled(false);
         await page.goto(`${domainForBugDistrict}/run-all-on-ci`);

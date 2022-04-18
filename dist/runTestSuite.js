@@ -61,7 +61,7 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
     return __generator(this, function (_a) {
         // @ts-ignore
         fs.readFile(filePath, "utf8", function (err, data) { return __awaiter(void 0, void 0, void 0, function () {
-            var testSuite, testCases, chunkedCases, chunkedTestSuites, totalSuccessfullTestSuiteChunks;
+            var testSuite, testCases, chunkedCases, chunkedTestSuites, browser, totalSuccessfullTestSuiteChunks;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -76,27 +76,27 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                         chunkedTestSuites = chunkedCases.map(function (cases) { return ({
                             cases: cases,
                         }); });
+                        return [4 /*yield*/, puppeteer.launch({
+                                dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
+                                headless: true,
+                            })];
+                    case 1:
+                        browser = _a.sent();
                         totalSuccessfullTestSuiteChunks = {
                             total: 0,
                         };
                         return [4 /*yield*/, Promise.all(chunkedTestSuites.map(function (testSuite) { return __awaiter(void 0, void 0, void 0, function () {
-                                var browser, page, onSuccess, onFailure;
+                                var page, onSuccess, onFailure;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
-                                        case 0: return [4 /*yield*/, puppeteer.launch({
-                                                dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
-                                                headless: true,
-                                            })];
+                                        case 0: return [4 /*yield*/, browser.newPage()];
                                         case 1:
-                                            browser = _a.sent();
-                                            return [4 /*yield*/, browser.newPage()];
-                                        case 2:
                                             page = _a.sent();
                                             return [4 /*yield*/, page.setCacheEnabled(false)];
-                                        case 3:
+                                        case 2:
                                             _a.sent();
                                             return [4 /*yield*/, page.goto("".concat(domainForBugDistrict, "/run-all-on-ci"))];
-                                        case 4:
+                                        case 3:
                                             _a.sent();
                                             onSuccess = function () {
                                                 totalSuccessfullTestSuiteChunks.total += 1;
@@ -106,14 +106,14 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                                                 }
                                             };
                                             return [4 /*yield*/, page.exposeFunction("onSuccess", onSuccess)];
-                                        case 5:
+                                        case 4:
                                             _a.sent();
                                             onFailure = function (errorMessage) {
                                                 console.error(errorMessage);
                                                 process.exit(1);
                                             };
                                             return [4 /*yield*/, page.exposeFunction("onFailure", onFailure)];
-                                        case 6:
+                                        case 5:
                                             _a.sent();
                                             return [4 /*yield*/, page.evaluate(function (_a) {
                                                     var testSuite = _a.testSuite, localhostPort = _a.localhostPort;
@@ -141,13 +141,13 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                                                         }
                                                     });
                                                 }, { testSuite: testSuite, localhostPort: localhostPort })];
-                                        case 7:
+                                        case 6:
                                             _a.sent();
                                             return [2 /*return*/];
                                     }
                                 });
                             }); }))];
-                    case 1:
+                    case 2:
                         _a.sent();
                         return [2 /*return*/];
                 }
