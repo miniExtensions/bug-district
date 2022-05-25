@@ -43,7 +43,8 @@ new Promise(async (resolve, reject) => {
     }));
 
     const browser = await puppeteer.launch({
-      dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
+      dumpio: true,
+      // dumpio: domainForBugDistrict !== defaultBugDistrictDomain ,
       headless: true,
     });
 
