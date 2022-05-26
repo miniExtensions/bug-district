@@ -34,82 +34,60 @@ new Promise(async (resolve, reject) => {
 
     const testSuite = JSON.parse(data);
 
-    const testCases = testSuite.cases;
-
-    const chunkedCases = chunkArray(testCases, Math.ceil(testCases.length / 3));
-
-    const chunkedTestSuites = chunkedCases.map((cases) => ({
-      cases,
-    }));
-
     const browser = await puppeteer.launch({
       dumpio: true,
       // dumpio: domainForBugDistrict !== defaultBugDistrictDomain ,
       headless: true,
     });
 
-    const totalSuccessfullTestSuiteChunks = {
-      total: 0,
+    const page = await browser.newPage();
+    await page.setCacheEnabled(false);
+    await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
+    // await page.goto(`http://localhost:3001/run-all-on-ci`);
+
+    const onSuccess = () => {
+      console.log("All tests passed.");
+      process.exit(0);
     };
 
-    await Promise.all(
-      chunkedTestSuites.map(async (testSuite) => {
-        const page = await browser.newPage();
-        await page.setCacheEnabled(false);
-        await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
-        // await page.goto(`http://localhost:3001/run-all-on-ci`);
+    await page.exposeFunction("onSuccess", onSuccess);
 
-        const onSuccess = () => {
-          totalSuccessfullTestSuiteChunks.total += 1;
+    const onFailure = (errorMessage: string) => {
+      console.error(errorMessage);
+      process.exit(1);
+    };
 
-          if (
-            totalSuccessfullTestSuiteChunks.total === chunkedTestSuites.length
-          ) {
-            console.log("All tests passed.");
-            process.exit(0);
+    await page.exposeFunction("onFailure", onFailure);
+
+    await page.evaluate(
+      ({ testSuite, localhostPort }) => {
+        const message = {
+          source: "ui-tester",
+          type: "run-test-suite-on-ci",
+          domainUrl: `http://localhost:${localhostPort}`,
+          jsonContent: JSON.stringify(testSuite),
+        };
+
+        window.postMessage(message, "*");
+
+        window.addEventListener("message", (event) => {
+          if (event.data.source != "ui-tester") {
+            return;
           }
-        };
 
-        await page.exposeFunction("onSuccess", onSuccess);
-
-        const onFailure = (errorMessage: string) => {
-          console.error(errorMessage);
-          process.exit(1);
-        };
-
-        await page.exposeFunction("onFailure", onFailure);
-
-        await page.evaluate(
-          ({ testSuite, localhostPort }) => {
-            const message = {
-              source: "ui-tester",
-              type: "run-test-suite-on-ci",
-              domainUrl: `http://localhost:${localhostPort}`,
-              jsonContent: JSON.stringify(testSuite),
-            };
-
-            window.postMessage(message, "*");
-
-            window.addEventListener("message", (event) => {
-              if (event.data.source != "ui-tester") {
-                return;
-              }
-
-              if (event.data.type === "test-suite-success-on-ci") {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const message = event.data;
-                // @ts-ignore
-                onSuccess();
-              } else if (event.data.type === "test-suite-failure-on-ci") {
-                const message = event.data;
-                // @ts-ignore
-                onFailure(message.error);
-              }
-            });
-          },
-          { testSuite, localhostPort }
-        );
-      })
+          if (event.data.type === "test-suite-success-on-ci") {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const message = event.data;
+            // @ts-ignore
+            onSuccess();
+          } else if (event.data.type === "test-suite-failure-on-ci") {
+            const message = event.data;
+            // @ts-ignore
+            onFailure(message.error);
+          }
+        });
+      },
+      { testSuite, localhostPort }
     );
   });
 });
