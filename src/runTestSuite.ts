@@ -1,7 +1,8 @@
-import * as puppeteer from "puppeteer";
-import * as fs from "fs";
-import * as path from "path";
-import { chunkArray } from "./chunkArray";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as puppeteer from 'puppeteer';
+
+import { chunkArray } from './chunkArray';
 
 const defaultBugDistrictDomain = "https://bug-district.vercel.app";
 
@@ -27,7 +28,7 @@ new Promise(async (resolve, reject) => {
   // @ts-ignore
   fs.readFile(filePath, "utf8", async (err: Error, data: any) => {
     if (err) {
-      console.error(err);
+      console.error(`Error while reading file: ${filePath}\n\n` + err);
       reject(err);
       return;
     }
