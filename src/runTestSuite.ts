@@ -4,6 +4,23 @@ import * as puppeteer from 'puppeteer';
 
 import { chunkArray } from './chunkArray';
 
+const transformObjPropertiesToPrintable = (
+  properties?: puppeteer.Protocol.Runtime.PropertyPreview[]
+): string => {
+  if (properties == null) return "null value";
+  if (properties.length == 0) return "";
+
+  return JSON.stringify(
+    properties.reduce<{ [propertyName: string]: string }>((prev, curr) => {
+      prev[curr.name] =
+        curr.type === "object"
+          ? transformObjPropertiesToPrintable(curr.valuePreview?.properties)
+          : curr.value ?? "undefined value";
+      return prev;
+    }, {})
+  );
+};
+
 const defaultBugDistrictDomain = "https://bug-district.vercel.app";
 
 const pathArg = process.argv[2] ?? null;
@@ -59,6 +76,16 @@ new Promise(async (resolve, reject) => {
     };
 
     await page.exposeFunction("onFailure", onFailure);
+
+    // Log the page's logs to make debugging easier
+    page.on("console", (s) => {
+      const data = s.args()[0]._remoteObject;
+      const finalLog =
+        data.type === "object"
+          ? transformObjPropertiesToPrintable(data.preview?.properties)
+          : s.text();
+      console.log(finalLog);
+    });
 
     await page.evaluate(
       ({ testSuite, localhostPort }) => {
