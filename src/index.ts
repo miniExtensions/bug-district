@@ -1,14 +1,8 @@
-import { flattenArray } from "./flattenArray";
-
+import { flattenArray } from './flattenArray';
 import {
-  ActionRunner,
-  ActionRunnerArgument,
-  GenerateActionsFunc,
-  GeneratedAction,
-  TestRunGlobals,
-  ActionGeneratorIterator,
-  GeneratedActionInternalAction,
-} from "./types";
+    ActionGeneratorIterator, ActionRunner, ActionRunnerArgument, GenerateActionsFunc,
+    GeneratedAction, GeneratedActionInternalAction, TestRunGlobals
+} from './types';
 
 export type {
   ActionRunner,
@@ -16,6 +10,72 @@ export type {
   TestRunGlobals,
   GeneratedActionInternalAction,
 };
+// KEEP THIS IN SYNC
+type PageRunnerAction = {
+  id: string;
+  argsData: { [key: string]: string };
+  maxDurationInMS: number;
+};
+type CurrentRunningTestState = {
+  status:
+    | { type: "not-started" }
+    | {
+        type: "running";
+        currentActionIndex: number;
+        testWasStartedAt: number;
+        stopAtActionIndex: number | null | undefined;
+        onlyRunNextActionAfterURLPathBecomes: string | null;
+      }
+    | { type: "success" }
+    | {
+        type: "failure";
+        failedActionIndex: number;
+        errorMessage: string;
+      }
+    | {
+        type: "stopped";
+        actionIndex: number;
+      };
+  actions: PageRunnerAction[];
+  delayBetweenActionsInMS: number;
+  globals: { [key: string]: string };
+  disableGenerators: boolean;
+};
+const deleteAllCookies = () => {
+  const cookies = document.cookie.split(";");
+
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i];
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+};
+
+const cleanup = async () => {
+  localStorage.clear();
+  deleteAllCookies();
+  sessionStorage.clear();
+  const dbs = await window.indexedDB.databases();
+  for (const db of dbs) {
+    // @ts-ignore
+    window.indexedDB.deleteDatabase(db.name);
+  }
+};
+
+// KEEP THIS IN SYNC WITH LIBRARY
+const NATIVE_ACTION_ID_PREFIX = "NATIVE_ACTION_ID_";
+
+// KEEP THIS IN SYNC WITH WEBSITE
+const makeNativeActionIdWithPrefix = (id: string) =>
+  `${NATIVE_ACTION_ID_PREFIX}${id}`;
+
+// KEEP THIS IN SYNC WITH WEBSITE
+const NATIVE_ADVANCED_ARG_ID_PREFIX = "NATIVE_ADVANCED_ARG_ID_";
+
+// KEEP THIS IN SYNC WITH WEBSITE
+const makeNativeAdvancedArgIdWithPrefix = (id: string) =>
+  `${NATIVE_ADVANCED_ARG_ID_PREFIX}${id}`;
 
 const initTest = (actionRunnersFromUser: ActionRunner[]) => {
   if (
@@ -32,49 +92,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
 
     require("@testing-library/jest-dom");
 
-    // KEEP THIS IN SYNC WITH LIBRARY
-    const NATIVE_ACTION_ID_PREFIX = "NATIVE_ACTION_ID_";
-
-    // KEEP THIS IN SYNC WITH WEBSITE
-    const makeNativeActionIdWithPrefix = (id: string) =>
-      `${NATIVE_ACTION_ID_PREFIX}${id}`;
-
-    // KEEP THIS IN SYNC WITH WEBSITE
-    const NATIVE_ADVANCED_ARG_ID_PREFIX = "NATIVE_ADVANCED_ARG_ID_";
-
-    // KEEP THIS IN SYNC WITH WEBSITE
-    const makeNativeAdvancedArgIdWithPrefix = (id: string) =>
-      `${NATIVE_ADVANCED_ARG_ID_PREFIX}${id}`;
-
-    const deleteAllCookies = () => {
-      const cookies = document.cookie.split(";");
-
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i];
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      }
-    };
-
-    const cleanup = async () => {
-      localStorage.clear();
-      deleteAllCookies();
-      sessionStorage.clear();
-      const dbs = await window.indexedDB.databases();
-      for (const db of dbs) {
-        // @ts-ignore
-        window.indexedDB.deleteDatabase(db.name);
-      }
-    };
-
-    // KEEP THIS IN SYNC
-    type PageRunnerAction = {
-      id: string;
-      argsData: { [key: string]: string };
-      maxDurationInMS: number;
-    };
-
     const eventMethod = Boolean(window.addEventListener)
       ? "addEventListener"
       : "attachEvent";
@@ -82,32 +99,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
     // @ts-ignore
     const eventer = window[eventMethod];
     const messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
-
-    type CurrentRunningTestState = {
-      status:
-        | { type: "not-started" }
-        | {
-            type: "running";
-            currentActionIndex: number;
-            testWasStartedAt: number;
-            stopAtActionIndex: number | null | undefined;
-            onlyRunNextActionAfterURLPathBecomes: string | null;
-          }
-        | { type: "success" }
-        | {
-            type: "failure";
-            failedActionIndex: number;
-            errorMessage: string;
-          }
-        | {
-            type: "stopped";
-            actionIndex: number;
-          };
-      actions: PageRunnerAction[];
-      delayBetweenActionsInMS: number;
-      globals: { [key: string]: string };
-      disableGenerators: boolean;
-    };
 
     const globalState: {
       currentRunningTestState: CurrentRunningTestState | null;
@@ -131,14 +122,14 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       const currentActionIndex =
         currentRunningTestState.status.currentActionIndex;
 
-      currentRunningTestState.status = {
+      const newStatus: CurrentRunningTestState["status"] = {
         type: "failure",
         failedActionIndex: currentActionIndex,
         errorMessage,
       };
 
       dispatchActionSetMostRecentTestState({
-        state: currentRunningTestState,
+        state: { ...currentRunningTestState, status: newStatus },
       });
 
       dispatchActionFailedEvent({
@@ -185,11 +176,14 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
               .mostRecentState as CurrentRunningTestState | null;
 
             globalState.parentWindowRecievedAvailableAction = true;
-            globalState.currentRunningTestState = currentRunningTestState;
+
+            dispatchActionSetMostRecentTestState({
+              state: currentRunningTestState,
+            });
 
             if (
-              currentRunningTestState &&
-              currentRunningTestState.status.type === "running"
+              globalState.currentRunningTestState &&
+              globalState.currentRunningTestState.status.type === "running"
             ) {
               processNextAction();
             }
