@@ -462,7 +462,21 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
           data: null,
           generatedActions: [],
         };
+        // Set default values
+        actionRunner.arguments.map((actionArg) => {
+          if (
+            actionArg.defaultValue != null &&
+            !currentAction.argsData[actionArg.id]
+          ) {
+            console.log(
+              `Setting default value for "${
+                actionArg.label ?? actionArg.id
+              }", set to: ${actionArg.defaultValue}`
+            );
 
+            currentAction.argsData[actionArg.id] = actionArg.defaultValue;
+          }
+        });
         const result = await actionRunner.run({
           args: currentAction.argsData,
           globals: currentRunningTestState.globals,
