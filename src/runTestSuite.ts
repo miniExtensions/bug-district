@@ -80,14 +80,12 @@ new Promise(async (resolve, reject) => {
     // Log the page's logs to make debugging easier
     page.on("console", (event) => {
       try {
-        event.args().map((arg) => {
-          const data = arg._remoteObject;
-          const finalLog =
-            data.type === "object"
-              ? transformObjPropertiesToPrintable(data.preview?.properties)
-              : event.text();
-          console.log(finalLog);
-        });
+        const data = event.args()[0]._remoteObject;
+        const finalLog =
+          data.type === "object"
+            ? transformObjPropertiesToPrintable(data.preview?.properties)
+            : event.text();
+        console.log(finalLog);
       } catch (error) {
         console.log(event.args());
       }
