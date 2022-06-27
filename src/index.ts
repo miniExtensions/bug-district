@@ -41,6 +41,11 @@ type CurrentRunningTestState = {
   globals: { [key: string]: string };
   disableGenerators: boolean;
 };
+
+type GlobalState = {
+  currentRunningTestState: CurrentRunningTestState | null;
+  parentWindowRecievedAvailableAction: boolean;
+};
 const deleteAllCookies = () => {
   const cookies = document.cookie.split(";");
 
@@ -77,6 +82,146 @@ const NATIVE_ADVANCED_ARG_ID_PREFIX = "NATIVE_ADVANCED_ARG_ID_";
 const makeNativeAdvancedArgIdWithPrefix = (id: string) =>
   `${NATIVE_ADVANCED_ARG_ID_PREFIX}${id}`;
 
+const dispatchActionFailedEvent = (args: {
+  actionIndex: number;
+  errorMessage: string;
+}) => {
+  const message = {
+    source: "ui-tester",
+    type: "test-failed",
+    actionIndex: args.actionIndex,
+    errorMessage: args.errorMessage,
+  };
+
+  const parentWindow = window.parent;
+
+  if (parentWindow) {
+    parentWindow.postMessage(message, "*");
+  } else {
+    throw new Error("Could not find a parent window to post message to.");
+  }
+};
+
+const dispatchTestSucceededEvent = async () => {
+  const message = {
+    source: "ui-tester",
+    type: "test-succeeded",
+  };
+
+  const parentWindow = window.parent;
+
+  if (parentWindow) {
+    parentWindow.postMessage(message, "*");
+  } else {
+    throw new Error("Could not find a parent window to post message to.");
+  }
+};
+
+const dispatchTestActionSuccessMessage = async (nextActionIndex: number) => {
+  const message = {
+    source: "ui-tester",
+    type: "test-action-succeeded",
+    nextActionIndex,
+  };
+
+  const parentWindow = window.parent;
+
+  if (parentWindow) {
+    parentWindow.postMessage(message, "*");
+  } else {
+    throw new Error("Could not find a parent window to post message to.");
+  }
+};
+
+const dispatchTestActionStoppedMessage = async (actionIndex: number) => {
+  const message = {
+    source: "ui-tester",
+    type: "test-action-stopped",
+    actionIndex,
+  };
+
+  const parentWindow = window.parent;
+
+  if (parentWindow) {
+    parentWindow.postMessage(message, "*");
+  } else {
+    throw new Error("Could not find a parent window to post message to.");
+  }
+};
+
+const dispatchMessageToSetGlobalsOnLastRun = async (args: {
+  globalsOnLastRun: TestRunGlobals | null;
+  actionIndex: number;
+  generatedActions: GeneratedAction[];
+}) => {
+  const message = {
+    source: "ui-tester",
+    type: "set-globals-on-last-run",
+    globalsOnLastRun: args.globalsOnLastRun,
+    actionIndex: args.actionIndex,
+    generatedActions: args.generatedActions,
+  };
+
+  const parentWindow = window.parent;
+
+  if (parentWindow) {
+    parentWindow.postMessage(message, "*");
+  } else {
+    throw new Error("Could not find a parent window to post message to.");
+  }
+};
+
+/**
+ * These are the actions that the iframe sends to us to inform us that they are available.
+ * KEEP IN SYNC WITH WEBSITE
+ */
+type AvailableTestAction = {
+  id: string;
+  label: string;
+  enableNativeAdvancedOptions?: boolean;
+  arguments: ActionRunnerArgument[];
+  /**
+   * If an action id is provided, we will only show this action if the user
+   * has that action already on their test.
+   */
+  requiresOneOf: string[] | null;
+  maxDurationInSeconds: number | null;
+};
+
+const dispatchActionForAvailableActions = (
+  actionRunners: ActionRunner[],
+  globalState: GlobalState
+) => {
+  const message = {
+    source: "ui-tester",
+    type: "available-actions",
+    actions: actionRunners.map((runner): AvailableTestAction => {
+      return {
+        id: runner.id,
+        label: runner.label,
+        arguments: runner.arguments,
+        enableNativeAdvancedOptions: runner.enableNativeAdvancedOptions,
+        requiresOneOf: runner.requiresOneOf || null,
+        maxDurationInSeconds: runner.maxDurationInSeconds || null,
+      };
+    }),
+  };
+
+  const parentWindow = window.parent;
+
+  if (parentWindow) {
+    parentWindow.postMessage(message, "*");
+
+    setTimeout(() => {
+      if (!globalState.parentWindowRecievedAvailableAction) {
+        // Retry
+        dispatchActionForAvailableActions(actionRunners, globalState);
+      }
+    }, 500);
+  } else {
+    throw new Error("Could not find a parent window to post message to.");
+  }
+};
 const initTest = (actionRunnersFromUser: ActionRunner[]) => {
   if (
     typeof window !== "undefined" &&
@@ -100,10 +245,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
     const eventer = window[eventMethod];
     const messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
 
-    const globalState: {
-      currentRunningTestState: CurrentRunningTestState | null;
-      parentWindowRecievedAvailableAction: boolean;
-    } = {
+    const globalState: GlobalState = {
       currentRunningTestState: null,
       parentWindowRecievedAvailableAction: false,
     };
@@ -137,13 +279,31 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         actionIndex: currentActionIndex,
       });
     };
+    const dispatchActionSetMostRecentTestState = async (args: {
+      state: CurrentRunningTestState | null;
+    }) => {
+      globalState.currentRunningTestState = args.state;
+      const message = {
+        source: "ui-tester",
+        type: "set-most-recent-state",
+        state: args.state,
+      };
 
+      const parentWindow = window.parent;
+
+      if (parentWindow) {
+        parentWindow.postMessage(message, "*");
+      } else {
+        throw new Error("Could not find a parent window to post message to.");
+      }
+    };
     eventer(
       messageEvent,
       async (e: any) => {
         if (!e.data) return;
 
         if (e && e.data && e.data.source === "ui-tester") {
+          console.log("TEST DATA:", e.data);
           if (e.data.type === "start-test" && e.data.actions) {
             const actions = e.data.actions as PageRunnerAction[];
             const disableGenerators = e.data.disableGenerators as boolean;
@@ -176,11 +336,9 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
               .mostRecentState as CurrentRunningTestState | null;
 
             globalState.parentWindowRecievedAvailableAction = true;
-
             dispatchActionSetMostRecentTestState({
               state: currentRunningTestState,
             });
-
             if (
               globalState.currentRunningTestState &&
               globalState.currentRunningTestState.status.type === "running"
@@ -192,167 +350,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       },
       false
     );
-
-    const dispatchActionFailedEvent = (args: {
-      actionIndex: number;
-      errorMessage: string;
-    }) => {
-      const message = {
-        source: "ui-tester",
-        type: "test-failed",
-        actionIndex: args.actionIndex,
-        errorMessage: args.errorMessage,
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
-
-    const dispatchTestSucceededEvent = async () => {
-      const message = {
-        source: "ui-tester",
-        type: "test-succeeded",
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
-
-    const dispatchTestActionSuccessMessage = async (
-      nextActionIndex: number
-    ) => {
-      const message = {
-        source: "ui-tester",
-        type: "test-action-succeeded",
-        nextActionIndex,
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
-
-    const dispatchTestActionStoppedMessage = async (actionIndex: number) => {
-      const message = {
-        source: "ui-tester",
-        type: "test-action-stopped",
-        actionIndex,
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
-
-    const dispatchActionSetMostRecentTestState = async (args: {
-      state: CurrentRunningTestState | null;
-    }) => {
-      globalState.currentRunningTestState = args.state;
-      const message = {
-        source: "ui-tester",
-        type: "set-most-recent-state",
-        state: args.state,
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
-
-    const dispatchMessageToSetGlobalsOnLastRun = async (args: {
-      globalsOnLastRun: TestRunGlobals | null;
-      actionIndex: number;
-      generatedActions: GeneratedAction[];
-    }) => {
-      const message = {
-        source: "ui-tester",
-        type: "set-globals-on-last-run",
-        globalsOnLastRun: args.globalsOnLastRun,
-        actionIndex: args.actionIndex,
-        generatedActions: args.generatedActions,
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
-
-    /**
-     * These are the actions that the iframe sends to us to inform us that they are available.
-     * KEEP IN SYNC WITH WEBSITE
-     */
-    type AvailableTestAction = {
-      id: string;
-      label: string;
-      enableNativeAdvancedOptions?: boolean;
-      arguments: ActionRunnerArgument[];
-      /**
-       * If an action id is provided, we will only show this action if the user
-       * has that action already on their test.
-       */
-      requiresOneOf: string[] | null;
-      maxDurationInSeconds: number | null;
-    };
-
-    const dispatchActionForAvailableActions = (
-      actionRunners: ActionRunner[]
-    ) => {
-      const message = {
-        source: "ui-tester",
-        type: "available-actions",
-        actions: actionRunners.map((runner): AvailableTestAction => {
-          return {
-            id: runner.id,
-            label: runner.label,
-            arguments: runner.arguments,
-            enableNativeAdvancedOptions: runner.enableNativeAdvancedOptions,
-            requiresOneOf: runner.requiresOneOf || null,
-            maxDurationInSeconds: runner.maxDurationInSeconds || null,
-          };
-        }),
-      };
-
-      const parentWindow = window.parent;
-
-      if (parentWindow) {
-        parentWindow.postMessage(message, "*");
-
-        setTimeout(() => {
-          if (!globalState.parentWindowRecievedAvailableAction) {
-            // Retry
-            dispatchActionForAvailableActions(actionRunners);
-          }
-        }, 500);
-      } else {
-        throw new Error("Could not find a parent window to post message to.");
-      }
-    };
 
     const goToURLPathNativeAction: ActionRunner = {
       id: makeNativeActionIdWithPrefix("goToURLPath"),
@@ -379,7 +376,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       ...actionRunnersFromUser,
     ];
 
-    dispatchActionForAvailableActions(actionRunners);
+    dispatchActionForAvailableActions(actionRunners, globalState);
 
     const wait = (milliseconds: number) => {
       return new Promise((resolve) => setTimeout(resolve, milliseconds));
