@@ -409,7 +409,25 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         );
         return;
       }
+      // Set default values
+      actionRunner.arguments.map((actionArg) => {
+        console.log(`checking argument: ${actionArg.id}`);
 
+        console.log(currentAction.argsData[actionArg.id]);
+
+        if (
+          actionArg.defaultValue != null &&
+          !currentAction.argsData[actionArg.id]
+        ) {
+          console.log(
+            `Setting default value for "${
+              actionArg.label ?? actionArg.id
+            }", set to: ${actionArg.defaultValue}`
+          );
+
+          currentAction.argsData[actionArg.id] = actionArg.defaultValue;
+        }
+      });
       const waitForURLToBe: string | undefined =
         currentRunningTestState.status.onlyRunNextActionAfterURLPathBecomes ||
         currentAction.argsData[
@@ -462,25 +480,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
           data: null,
           generatedActions: [],
         };
-        // Set default values
-        actionRunner.arguments.map((actionArg) => {
-          console.log(`checking argument: ${actionArg.id}`);
 
-          console.log(currentAction.argsData[actionArg.id]);
-
-          if (
-            actionArg.defaultValue != null &&
-            !currentAction.argsData[actionArg.id]
-          ) {
-            console.log(
-              `Setting default value for "${
-                actionArg.label ?? actionArg.id
-              }", set to: ${actionArg.defaultValue}`
-            );
-
-            currentAction.argsData[actionArg.id] = actionArg.defaultValue;
-          }
-        });
         const result = await actionRunner.run({
           args: currentAction.argsData,
           globals: currentRunningTestState.globals,
