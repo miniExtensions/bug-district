@@ -79,7 +79,8 @@ new Promise(async (resolve, reject) => {
 
     // Log the page's logs to make debugging easier
     page.on("console", (s) => {
-      const data = s.args()[0]._remoteObject;
+      const data = s.args()[0]?._remoteObject;
+      if (data == null) return;
       const finalLog =
         data.type === "object"
           ? transformObjPropertiesToPrintable(data.preview?.properties)
