@@ -78,14 +78,19 @@ new Promise(async (resolve, reject) => {
     await page.exposeFunction("onFailure", onFailure);
 
     // Log the page's logs to make debugging easier
-    page.on("console", (s) => {
-      const data = s.args()[0]?._remoteObject;
-      if (data == null) return;
-      const finalLog =
-        data.type === "object"
-          ? transformObjPropertiesToPrintable(data.preview?.properties)
-          : s.text();
-      console.log(finalLog);
+    page.on("console", (event) => {
+      try {
+        event.args().map((arg) => {
+          const data = arg._remoteObject;
+          const finalLog =
+            data.type === "object"
+              ? transformObjPropertiesToPrintable(data.preview?.properties)
+              : event.text();
+          console.log(finalLog);
+        });
+      } catch (error) {
+        console.log(event.args());
+      }
     });
 
     await page.evaluate(
