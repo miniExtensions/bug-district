@@ -284,7 +284,6 @@ var initTest = function (actionRunnersFromUser) {
                         if (!e.data)
                             return [2 /*return*/];
                         if (!(e && e.data && e.data.source === "ui-tester")) return [3 /*break*/, 3];
-                        console.log("TEST DATA::", e.data);
                         if (!(e.data.type === "start-test" && e.data.actions)) return [3 /*break*/, 2];
                         actions = e.data.actions;
                         disableGenerators = e.data.disableGenerators;
@@ -377,12 +376,8 @@ var initTest = function (actionRunnersFromUser) {
                             return [2 /*return*/];
                         }
                         // Set default values
-                        console.log("Action arguments");
-                        console.log(actionRunner.arguments.length);
                         actionRunner.arguments.map(function (actionArg) {
                             var _a;
-                            console.log("checking argument: ".concat(actionArg.id));
-                            console.log(currentAction.argsData[actionArg.id]);
                             if (actionArg.defaultValue != null &&
                                 !currentAction.argsData[actionArg.id]) {
                                 console.log("Setting default value for \"".concat((_a = actionArg.label) !== null && _a !== void 0 ? _a : actionArg.id, "\", set to: ").concat(actionArg.defaultValue));
@@ -397,7 +392,7 @@ var initTest = function (actionRunnersFromUser) {
                             setTimeout(function () {
                                 // try again in a momment
                                 processNextAction_1();
-                            }, 1000);
+                            }, 3000);
                             return [2 /*return*/];
                         }
                         timeoutState = {

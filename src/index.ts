@@ -441,7 +441,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         setTimeout(() => {
           // try again in a momment
           processNextAction();
-        }, 1000);
+        }, 3000);
         return;
       }
 
