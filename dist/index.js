@@ -58,6 +58,164 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeTestActions = void 0;
 var flattenArray_1 = require("./flattenArray");
+var deleteAllCookies = function () {
+    var cookies = document.cookie.split(";");
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf("=");
+        var name_1 = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name_1 + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+};
+var cleanup = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var dbs, _i, dbs_1, db;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                localStorage.clear();
+                deleteAllCookies();
+                sessionStorage.clear();
+                return [4 /*yield*/, window.indexedDB.databases()];
+            case 1:
+                dbs = _a.sent();
+                for (_i = 0, dbs_1 = dbs; _i < dbs_1.length; _i++) {
+                    db = dbs_1[_i];
+                    // @ts-ignore
+                    window.indexedDB.deleteDatabase(db.name);
+                }
+                return [2 /*return*/];
+        }
+    });
+}); };
+// KEEP THIS IN SYNC WITH LIBRARY
+var NATIVE_ACTION_ID_PREFIX = "NATIVE_ACTION_ID_";
+// KEEP THIS IN SYNC WITH WEBSITE
+var makeNativeActionIdWithPrefix = function (id) {
+    return "".concat(NATIVE_ACTION_ID_PREFIX).concat(id);
+};
+// KEEP THIS IN SYNC WITH WEBSITE
+var NATIVE_ADVANCED_ARG_ID_PREFIX = "NATIVE_ADVANCED_ARG_ID_";
+// KEEP THIS IN SYNC WITH WEBSITE
+var makeNativeAdvancedArgIdWithPrefix = function (id) {
+    return "".concat(NATIVE_ADVANCED_ARG_ID_PREFIX).concat(id);
+};
+var dispatchActionFailedEvent = function (args) {
+    var message = {
+        source: "ui-tester",
+        type: "test-failed",
+        actionIndex: args.actionIndex,
+        errorMessage: args.errorMessage,
+    };
+    var parentWindow = window.parent;
+    if (parentWindow) {
+        parentWindow.postMessage(message, "*");
+    }
+    else {
+        throw new Error("Could not find a parent window to post message to.");
+    }
+};
+var dispatchTestSucceededEvent = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var message, parentWindow;
+    return __generator(this, function (_a) {
+        message = {
+            source: "ui-tester",
+            type: "test-succeeded",
+        };
+        parentWindow = window.parent;
+        if (parentWindow) {
+            parentWindow.postMessage(message, "*");
+        }
+        else {
+            throw new Error("Could not find a parent window to post message to.");
+        }
+        return [2 /*return*/];
+    });
+}); };
+var dispatchTestActionSuccessMessage = function (nextActionIndex) { return __awaiter(void 0, void 0, void 0, function () {
+    var message, parentWindow;
+    return __generator(this, function (_a) {
+        message = {
+            source: "ui-tester",
+            type: "test-action-succeeded",
+            nextActionIndex: nextActionIndex,
+        };
+        parentWindow = window.parent;
+        if (parentWindow) {
+            parentWindow.postMessage(message, "*");
+        }
+        else {
+            throw new Error("Could not find a parent window to post message to.");
+        }
+        return [2 /*return*/];
+    });
+}); };
+var dispatchTestActionStoppedMessage = function (actionIndex) { return __awaiter(void 0, void 0, void 0, function () {
+    var message, parentWindow;
+    return __generator(this, function (_a) {
+        message = {
+            source: "ui-tester",
+            type: "test-action-stopped",
+            actionIndex: actionIndex,
+        };
+        parentWindow = window.parent;
+        if (parentWindow) {
+            parentWindow.postMessage(message, "*");
+        }
+        else {
+            throw new Error("Could not find a parent window to post message to.");
+        }
+        return [2 /*return*/];
+    });
+}); };
+var dispatchMessageToSetGlobalsOnLastRun = function (args) { return __awaiter(void 0, void 0, void 0, function () {
+    var message, parentWindow;
+    return __generator(this, function (_a) {
+        message = {
+            source: "ui-tester",
+            type: "set-globals-on-last-run",
+            globalsOnLastRun: args.globalsOnLastRun,
+            actionIndex: args.actionIndex,
+            generatedActions: args.generatedActions,
+        };
+        parentWindow = window.parent;
+        if (parentWindow) {
+            parentWindow.postMessage(message, "*");
+        }
+        else {
+            throw new Error("Could not find a parent window to post message to.");
+        }
+        return [2 /*return*/];
+    });
+}); };
+var dispatchActionForAvailableActions = function (actionRunners, globalState) {
+    var message = {
+        source: "ui-tester",
+        type: "available-actions",
+        actions: actionRunners.map(function (runner) {
+            return {
+                id: runner.id,
+                label: runner.label,
+                arguments: runner.arguments,
+                enableNativeAdvancedOptions: runner.enableNativeAdvancedOptions,
+                requiresOneOf: runner.requiresOneOf || null,
+                maxDurationInSeconds: runner.maxDurationInSeconds || null,
+            };
+        }),
+    };
+    var parentWindow = window.parent;
+    if (parentWindow) {
+        parentWindow.postMessage(message, "*");
+        setTimeout(function () {
+            if (!globalState.parentWindowRecievedAvailableAction) {
+                // Retry
+                dispatchActionForAvailableActions(actionRunners, globalState);
+            }
+        }, 500);
+    }
+    else {
+        throw new Error("Could not find a parent window to post message to.");
+    }
+};
 var initTest = function (actionRunnersFromUser) {
     if (typeof window !== "undefined" &&
         process.env.JEST_WORKER_ID == null &&
@@ -69,47 +227,6 @@ var initTest = function (actionRunnersFromUser) {
         // @ts-ignore
         global.expect = jestExpect;
         require("@testing-library/jest-dom");
-        // KEEP THIS IN SYNC WITH LIBRARY
-        var NATIVE_ACTION_ID_PREFIX_1 = "NATIVE_ACTION_ID_";
-        // KEEP THIS IN SYNC WITH WEBSITE
-        var makeNativeActionIdWithPrefix = function (id) {
-            return "".concat(NATIVE_ACTION_ID_PREFIX_1).concat(id);
-        };
-        // KEEP THIS IN SYNC WITH WEBSITE
-        var NATIVE_ADVANCED_ARG_ID_PREFIX_1 = "NATIVE_ADVANCED_ARG_ID_";
-        // KEEP THIS IN SYNC WITH WEBSITE
-        var makeNativeAdvancedArgIdWithPrefix_1 = function (id) {
-            return "".concat(NATIVE_ADVANCED_ARG_ID_PREFIX_1).concat(id);
-        };
-        var deleteAllCookies_1 = function () {
-            var cookies = document.cookie.split(";");
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i];
-                var eqPos = cookie.indexOf("=");
-                var name_1 = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                document.cookie = name_1 + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            }
-        };
-        var cleanup_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var dbs, _i, dbs_1, db;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        localStorage.clear();
-                        deleteAllCookies_1();
-                        sessionStorage.clear();
-                        return [4 /*yield*/, window.indexedDB.databases()];
-                    case 1:
-                        dbs = _a.sent();
-                        for (_i = 0, dbs_1 = dbs; _i < dbs_1.length; _i++) {
-                            db = dbs_1[_i];
-                            // @ts-ignore
-                            window.indexedDB.deleteDatabase(db.name);
-                        }
-                        return [2 /*return*/];
-                }
-            });
-        }); };
         var eventMethod = Boolean(window.addEventListener)
             ? "addEventListener"
             : "attachEvent";
@@ -127,19 +244,38 @@ var initTest = function (actionRunnersFromUser) {
                 throw new Error("failAtCurrentAction called when not in running state.");
             }
             var currentActionIndex = currentRunningTestState.status.currentActionIndex;
-            currentRunningTestState.status = {
+            var newStatus = {
                 type: "failure",
                 failedActionIndex: currentActionIndex,
                 errorMessage: errorMessage,
             };
             dispatchActionSetMostRecentTestState_1({
-                state: currentRunningTestState,
+                state: __assign(__assign({}, currentRunningTestState), { status: newStatus }),
             });
-            dispatchActionFailedEvent_1({
+            dispatchActionFailedEvent({
                 errorMessage: errorMessage,
                 actionIndex: currentActionIndex,
             });
         };
+        var dispatchActionSetMostRecentTestState_1 = function (args) { return __awaiter(void 0, void 0, void 0, function () {
+            var message, parentWindow;
+            return __generator(this, function (_a) {
+                globalState_1.currentRunningTestState = args.state;
+                message = {
+                    source: "ui-tester",
+                    type: "set-most-recent-state",
+                    state: args.state,
+                };
+                parentWindow = window.parent;
+                if (parentWindow) {
+                    parentWindow.postMessage(message, "*");
+                }
+                else {
+                    throw new Error("Could not find a parent window to post message to.");
+                }
+                return [2 /*return*/];
+            });
+        }); };
         eventer(messageEvent, function (e) { return __awaiter(void 0, void 0, void 0, function () {
             var actions, disableGenerators, stopAtActionIndex, delayBetweenActionsInMS, state, currentRunningTestState;
             return __generator(this, function (_a) {
@@ -148,13 +284,14 @@ var initTest = function (actionRunnersFromUser) {
                         if (!e.data)
                             return [2 /*return*/];
                         if (!(e && e.data && e.data.source === "ui-tester")) return [3 /*break*/, 3];
+                        console.log("TEST DATA::", e.data);
                         if (!(e.data.type === "start-test" && e.data.actions)) return [3 /*break*/, 2];
                         actions = e.data.actions;
                         disableGenerators = e.data.disableGenerators;
                         stopAtActionIndex = e.data.stopAtActionIndex;
                         delayBetweenActionsInMS = e.data
                             .delayBetweenActionsInMS;
-                        return [4 /*yield*/, cleanup_1()];
+                        return [4 /*yield*/, cleanup()];
                     case 1:
                         _a.sent();
                         state = {
@@ -178,9 +315,11 @@ var initTest = function (actionRunnersFromUser) {
                             currentRunningTestState = e.data
                                 .mostRecentState;
                             globalState_1.parentWindowRecievedAvailableAction = true;
-                            globalState_1.currentRunningTestState = currentRunningTestState;
-                            if (currentRunningTestState &&
-                                currentRunningTestState.status.type === "running") {
+                            dispatchActionSetMostRecentTestState_1({
+                                state: currentRunningTestState,
+                            });
+                            if (globalState_1.currentRunningTestState &&
+                                globalState_1.currentRunningTestState.status.type === "running") {
                                 processNextAction_1();
                             }
                         }
@@ -189,142 +328,6 @@ var initTest = function (actionRunnersFromUser) {
                 }
             });
         }); }, false);
-        var dispatchActionFailedEvent_1 = function (args) {
-            var message = {
-                source: "ui-tester",
-                type: "test-failed",
-                actionIndex: args.actionIndex,
-                errorMessage: args.errorMessage,
-            };
-            var parentWindow = window.parent;
-            if (parentWindow) {
-                parentWindow.postMessage(message, "*");
-            }
-            else {
-                throw new Error("Could not find a parent window to post message to.");
-            }
-        };
-        var dispatchTestSucceededEvent_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
-            var message, parentWindow;
-            return __generator(this, function (_a) {
-                message = {
-                    source: "ui-tester",
-                    type: "test-succeeded",
-                };
-                parentWindow = window.parent;
-                if (parentWindow) {
-                    parentWindow.postMessage(message, "*");
-                }
-                else {
-                    throw new Error("Could not find a parent window to post message to.");
-                }
-                return [2 /*return*/];
-            });
-        }); };
-        var dispatchTestActionSuccessMessage_1 = function (nextActionIndex) { return __awaiter(void 0, void 0, void 0, function () {
-            var message, parentWindow;
-            return __generator(this, function (_a) {
-                message = {
-                    source: "ui-tester",
-                    type: "test-action-succeeded",
-                    nextActionIndex: nextActionIndex,
-                };
-                parentWindow = window.parent;
-                if (parentWindow) {
-                    parentWindow.postMessage(message, "*");
-                }
-                else {
-                    throw new Error("Could not find a parent window to post message to.");
-                }
-                return [2 /*return*/];
-            });
-        }); };
-        var dispatchTestActionStoppedMessage_1 = function (actionIndex) { return __awaiter(void 0, void 0, void 0, function () {
-            var message, parentWindow;
-            return __generator(this, function (_a) {
-                message = {
-                    source: "ui-tester",
-                    type: "test-action-stopped",
-                    actionIndex: actionIndex,
-                };
-                parentWindow = window.parent;
-                if (parentWindow) {
-                    parentWindow.postMessage(message, "*");
-                }
-                else {
-                    throw new Error("Could not find a parent window to post message to.");
-                }
-                return [2 /*return*/];
-            });
-        }); };
-        var dispatchActionSetMostRecentTestState_1 = function (args) { return __awaiter(void 0, void 0, void 0, function () {
-            var message, parentWindow;
-            return __generator(this, function (_a) {
-                globalState_1.currentRunningTestState = args.state;
-                message = {
-                    source: "ui-tester",
-                    type: "set-most-recent-state",
-                    state: args.state,
-                };
-                parentWindow = window.parent;
-                if (parentWindow) {
-                    parentWindow.postMessage(message, "*");
-                }
-                else {
-                    throw new Error("Could not find a parent window to post message to.");
-                }
-                return [2 /*return*/];
-            });
-        }); };
-        var dispatchMessageToSetGlobalsOnLastRun_1 = function (args) { return __awaiter(void 0, void 0, void 0, function () {
-            var message, parentWindow;
-            return __generator(this, function (_a) {
-                message = {
-                    source: "ui-tester",
-                    type: "set-globals-on-last-run",
-                    globalsOnLastRun: args.globalsOnLastRun,
-                    actionIndex: args.actionIndex,
-                    generatedActions: args.generatedActions,
-                };
-                parentWindow = window.parent;
-                if (parentWindow) {
-                    parentWindow.postMessage(message, "*");
-                }
-                else {
-                    throw new Error("Could not find a parent window to post message to.");
-                }
-                return [2 /*return*/];
-            });
-        }); };
-        var dispatchActionForAvailableActions_1 = function (actionRunners) {
-            var message = {
-                source: "ui-tester",
-                type: "available-actions",
-                actions: actionRunners.map(function (runner) {
-                    return {
-                        id: runner.id,
-                        label: runner.label,
-                        arguments: runner.arguments,
-                        enableNativeAdvancedOptions: runner.enableNativeAdvancedOptions,
-                        requiresOneOf: runner.requiresOneOf || null,
-                        maxDurationInSeconds: runner.maxDurationInSeconds || null,
-                    };
-                }),
-            };
-            var parentWindow = window.parent;
-            if (parentWindow) {
-                parentWindow.postMessage(message, "*");
-                setTimeout(function () {
-                    if (!globalState_1.parentWindowRecievedAvailableAction) {
-                        // Retry
-                        dispatchActionForAvailableActions_1(actionRunners);
-                    }
-                }, 500);
-            }
-            else {
-                throw new Error("Could not find a parent window to post message to.");
-            }
-        };
         var goToURLPathNativeAction = {
             id: makeNativeActionIdWithPrefix("goToURLPath"),
             label: "Go to URL Path",
@@ -349,7 +352,7 @@ var initTest = function (actionRunnersFromUser) {
         var actionRunners_1 = __spreadArray([
             goToURLPathNativeAction
         ], actionRunnersFromUser, true);
-        dispatchActionForAvailableActions_1(actionRunners_1);
+        dispatchActionForAvailableActions(actionRunners_1, globalState_1);
         var wait_1 = function (milliseconds) {
             return new Promise(function (resolve) { return setTimeout(resolve, milliseconds); });
         };
@@ -373,8 +376,21 @@ var initTest = function (actionRunnersFromUser) {
                             failAtCurrentAction_1("No action runner found for action with id ".concat(currentAction.id, "."));
                             return [2 /*return*/];
                         }
+                        // Set default values
+                        console.log("Action arguments");
+                        console.log(actionRunner.arguments.length);
+                        actionRunner.arguments.map(function (actionArg) {
+                            var _a;
+                            console.log("checking argument: ".concat(actionArg.id));
+                            console.log(currentAction.argsData[actionArg.id]);
+                            if (actionArg.defaultValue != null &&
+                                !currentAction.argsData[actionArg.id]) {
+                                console.log("Setting default value for \"".concat((_a = actionArg.label) !== null && _a !== void 0 ? _a : actionArg.id, "\", set to: ").concat(actionArg.defaultValue));
+                                currentAction.argsData[actionArg.id] = actionArg.defaultValue;
+                            }
+                        });
                         waitForURLToBe = currentRunningTestState.status.onlyRunNextActionAfterURLPathBecomes ||
-                            currentAction.argsData[makeNativeAdvancedArgIdWithPrefix_1("waitForURLToBe")];
+                            currentAction.argsData[makeNativeAdvancedArgIdWithPrefix("waitForURLToBe")];
                         pathWithoutDomain = window.location.href.substring((window.location.protocol + "//" + window.location.host).length);
                         if (waitForURLToBe && pathWithoutDomain !== waitForURLToBe) {
                             console.log("Going to wait for URL to be ready for action", currentActionIndex);
@@ -452,10 +468,10 @@ var initTest = function (actionRunnersFromUser) {
                         dispatchActionSetMostRecentTestState_1({
                             state: currentRunningTestState,
                         });
-                        return [4 /*yield*/, cleanup_1()];
+                        return [4 /*yield*/, cleanup()];
                     case 4:
                         _b.sent();
-                        dispatchTestSucceededEvent_1();
+                        dispatchTestSucceededEvent();
                         return [3 /*break*/, 8];
                     case 5:
                         currentRunningTestState.status.onlyRunNextActionAfterURLPathBecomes =
@@ -476,10 +492,10 @@ var initTest = function (actionRunnersFromUser) {
                         dispatchActionSetMostRecentTestState_1({
                             state: currentRunningTestState,
                         });
-                        return [4 /*yield*/, cleanup_1()];
+                        return [4 /*yield*/, cleanup()];
                     case 6:
                         _b.sent();
-                        dispatchTestActionStoppedMessage_1(currentActionIndex_1);
+                        dispatchTestActionStoppedMessage(currentActionIndex_1);
                         return [3 /*break*/, 8];
                     case 7:
                         nextActionIndex = currentActionIndex_1 + 1;
@@ -487,11 +503,11 @@ var initTest = function (actionRunnersFromUser) {
                         dispatchActionSetMostRecentTestState_1({
                             state: currentRunningTestState,
                         });
-                        dispatchTestActionSuccessMessage_1(nextActionIndex);
+                        dispatchTestActionSuccessMessage(nextActionIndex);
                         processNextAction_1();
                         _b.label = 8;
                     case 8:
-                        dispatchMessageToSetGlobalsOnLastRun_1({
+                        dispatchMessageToSetGlobalsOnLastRun({
                             actionIndex: currentActionIndex,
                             generatedActions: modifiersResult.generatedActions,
                             globalsOnLastRun: Object.keys(currentRunningTestState.globals).length > 0
