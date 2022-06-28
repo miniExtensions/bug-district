@@ -410,6 +410,8 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         return;
       }
       // Set default values
+      console.log("Action arguments");
+      console.log(actionRunner.arguments.length);
       actionRunner.arguments.map((actionArg) => {
         console.log(`checking argument: ${actionArg.id}`);
 
