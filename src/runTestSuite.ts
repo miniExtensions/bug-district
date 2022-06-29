@@ -60,8 +60,8 @@ new Promise(async (resolve, reject) => {
 
     const page = await browser.newPage();
     await page.setCacheEnabled(false);
-    await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
-    // await page.goto(`http://localhost:3001/run-all-on-ci`);
+    // await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
+    await page.goto(`http://localhost:3001/run-all-on-ci`);
 
     const onSuccess = () => {
       console.log("All tests passed.");
