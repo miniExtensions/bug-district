@@ -97,10 +97,8 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
                         return [4 /*yield*/, page.setCacheEnabled(false)];
                     case 3:
                         _a.sent();
-                        // await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
-                        return [4 /*yield*/, page.goto("http://localhost:3001/run-all-on-ci")];
+                        return [4 /*yield*/, page.goto("".concat(domainForBugDistrict, "/run-all-on-ci"))];
                     case 4:
-                        // await page.goto(`${domainForBugDistrict}/run-all-on-ci`);
                         _a.sent();
                         onSuccess = function () {
                             console.log("All tests passed.");
