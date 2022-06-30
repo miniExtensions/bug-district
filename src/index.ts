@@ -273,6 +273,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       dispatchActionSetMostRecentTestState({
         state: { ...currentRunningTestState, status: newStatus },
       });
+      console.log(`FAILED ACTION ERROR MESSAGE: ${errorMessage}`);
 
       dispatchActionFailedEvent({
         errorMessage,
