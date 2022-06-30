@@ -303,7 +303,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         if (!e.data) return;
 
         if (e && e.data && e.data.source === "ui-tester") {
-          console.log("TEST DATA::", e.data);
           if (e.data.type === "start-test" && e.data.actions) {
             const actions = e.data.actions as PageRunnerAction[];
             const disableGenerators = e.data.disableGenerators as boolean;
@@ -411,10 +410,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       }
       // Set default values
       actionRunner.arguments.map((actionArg) => {
-        console.log(`checking argument: ${actionArg.id}`);
-
-        console.log(currentAction.argsData[actionArg.id]);
-
         if (
           actionArg.defaultValue != null &&
           !currentAction.argsData[actionArg.id]
@@ -446,7 +441,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         setTimeout(() => {
           // try again in a momment
           processNextAction();
-        }, 1000);
+        }, 2000);
         return;
       }
 

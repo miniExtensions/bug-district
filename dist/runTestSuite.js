@@ -38,10 +38,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wait = void 0;
-var puppeteer = require("puppeteer");
 var fs = require("fs");
 var path = require("path");
-var chunkArray_1 = require("./chunkArray");
+var puppeteer = require("puppeteer");
+var transformObjPropertiesToPrintable = function (properties) {
+    if (properties == null)
+        return "null value";
+    if (properties.length == 0)
+        return "";
+    return JSON.stringify(properties.reduce(function (prev, curr) {
+        var _a, _b;
+        prev[curr.name] =
+            curr.type === "object"
+                ? transformObjPropertiesToPrintable((_a = curr.valuePreview) === null || _a === void 0 ? void 0 : _a.properties)
+                : (_b = curr.value) !== null && _b !== void 0 ? _b : "undefined value";
+        return prev;
+    }, {}));
+};
 var defaultBugDistrictDomain = "https://bug-district.vercel.app";
 var pathArg = (_a = process.argv[2]) !== null && _a !== void 0 ? _a : null;
 var localhostPort = (_b = process.argv[3]) !== null && _b !== void 0 ? _b : null;
@@ -61,93 +74,87 @@ new Promise(function (resolve, reject) { return __awaiter(void 0, void 0, void 0
     return __generator(this, function (_a) {
         // @ts-ignore
         fs.readFile(filePath, "utf8", function (err, data) { return __awaiter(void 0, void 0, void 0, function () {
-            var testSuite, testCases, chunkedCases, chunkedTestSuites, browser, totalSuccessfullTestSuiteChunks;
+            var testSuite, browser, page, onSuccess, onFailure;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (err) {
-                            console.error(err);
+                            console.error("Error while reading file: ".concat(filePath, "\n\n") + err);
                             reject(err);
                             return [2 /*return*/];
                         }
                         testSuite = JSON.parse(data);
-                        testCases = testSuite.cases;
-                        chunkedCases = (0, chunkArray_1.chunkArray)(testCases, Math.ceil(testCases.length / 3));
-                        chunkedTestSuites = chunkedCases.map(function (cases) { return ({
-                            cases: cases,
-                        }); });
                         return [4 /*yield*/, puppeteer.launch({
-                                dumpio: domainForBugDistrict !== defaultBugDistrictDomain,
+                                dumpio: true,
+                                // dumpio: domainForBugDistrict !== defaultBugDistrictDomain ,
                                 headless: true,
                             })];
                     case 1:
                         browser = _a.sent();
-                        totalSuccessfullTestSuiteChunks = {
-                            total: 0,
+                        return [4 /*yield*/, browser.newPage()];
+                    case 2:
+                        page = _a.sent();
+                        return [4 /*yield*/, page.setCacheEnabled(false)];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, page.goto("".concat(domainForBugDistrict, "/run-all-on-ci"))];
+                    case 4:
+                        _a.sent();
+                        onSuccess = function () {
+                            console.log("All tests passed.");
+                            process.exit(0);
                         };
-                        return [4 /*yield*/, Promise.all(chunkedTestSuites.map(function (testSuite) { return __awaiter(void 0, void 0, void 0, function () {
-                                var page, onSuccess, onFailure;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4 /*yield*/, browser.newPage()];
-                                        case 1:
-                                            page = _a.sent();
-                                            return [4 /*yield*/, page.setCacheEnabled(false)];
-                                        case 2:
-                                            _a.sent();
-                                            return [4 /*yield*/, page.goto("".concat(domainForBugDistrict, "/run-all-on-ci"))];
-                                        case 3:
-                                            _a.sent();
-                                            onSuccess = function () {
-                                                totalSuccessfullTestSuiteChunks.total += 1;
-                                                if (totalSuccessfullTestSuiteChunks.total === chunkedTestSuites.length) {
-                                                    console.log("All tests passed.");
-                                                    process.exit(0);
-                                                }
-                                            };
-                                            return [4 /*yield*/, page.exposeFunction("onSuccess", onSuccess)];
-                                        case 4:
-                                            _a.sent();
-                                            onFailure = function (errorMessage) {
-                                                console.error(errorMessage);
-                                                process.exit(1);
-                                            };
-                                            return [4 /*yield*/, page.exposeFunction("onFailure", onFailure)];
-                                        case 5:
-                                            _a.sent();
-                                            return [4 /*yield*/, page.evaluate(function (_a) {
-                                                    var testSuite = _a.testSuite, localhostPort = _a.localhostPort;
-                                                    var message = {
-                                                        source: "ui-tester",
-                                                        type: "run-test-suite-on-ci",
-                                                        domainUrl: "http://localhost:".concat(localhostPort),
-                                                        jsonContent: JSON.stringify(testSuite),
-                                                    };
-                                                    window.postMessage(message, "*");
-                                                    window.addEventListener("message", function (event) {
-                                                        if (event.data.source != "ui-tester") {
-                                                            return;
-                                                        }
-                                                        if (event.data.type === "test-suite-success-on-ci") {
-                                                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                                                            var message_1 = event.data;
-                                                            // @ts-ignore
-                                                            onSuccess();
-                                                        }
-                                                        else if (event.data.type === "test-suite-failure-on-ci") {
-                                                            var message_2 = event.data;
-                                                            // @ts-ignore
-                                                            onFailure(message_2.error);
-                                                        }
-                                                    });
-                                                }, { testSuite: testSuite, localhostPort: localhostPort })];
-                                        case 6:
-                                            _a.sent();
-                                            return [2 /*return*/];
+                        return [4 /*yield*/, page.exposeFunction("onSuccess", onSuccess)];
+                    case 5:
+                        _a.sent();
+                        onFailure = function (errorMessage) {
+                            console.error(errorMessage);
+                            process.exit(1);
+                        };
+                        return [4 /*yield*/, page.exposeFunction("onFailure", onFailure)];
+                    case 6:
+                        _a.sent();
+                        // Log the page's logs to make debugging easier
+                        page.on("console", function (event) {
+                            var _a;
+                            try {
+                                var data_1 = event.args()[0]._remoteObject;
+                                var finalLog = data_1.type === "object"
+                                    ? transformObjPropertiesToPrintable((_a = data_1.preview) === null || _a === void 0 ? void 0 : _a.properties)
+                                    : event.text();
+                                console.log(finalLog);
+                            }
+                            catch (error) {
+                                console.log(event.args());
+                            }
+                        });
+                        return [4 /*yield*/, page.evaluate(function (_a) {
+                                var testSuite = _a.testSuite, localhostPort = _a.localhostPort;
+                                var message = {
+                                    source: "ui-tester",
+                                    type: "run-test-suite-on-ci",
+                                    domainUrl: "http://localhost:".concat(localhostPort),
+                                    jsonContent: JSON.stringify(testSuite),
+                                };
+                                window.postMessage(message, "*");
+                                window.addEventListener("message", function (event) {
+                                    if (event.data.source != "ui-tester") {
+                                        return;
+                                    }
+                                    if (event.data.type === "test-suite-success-on-ci") {
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                        var message_1 = event.data;
+                                        // @ts-ignore
+                                        onSuccess();
+                                    }
+                                    else if (event.data.type === "test-suite-failure-on-ci") {
+                                        var message_2 = event.data;
+                                        // @ts-ignore
+                                        onFailure(message_2.error);
                                     }
                                 });
-                            }); }))];
-                    case 2:
+                            }, { testSuite: testSuite, localhostPort: localhostPort })];
+                    case 7:
                         _a.sent();
                         return [2 /*return*/];
                 }
