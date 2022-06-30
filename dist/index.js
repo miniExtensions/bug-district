@@ -217,6 +217,7 @@ var dispatchActionForAvailableActions = function (actionRunners, globalState) {
     }
 };
 var initTest = function (actionRunnersFromUser) {
+    console.log("TESTING UPDATES ON node_modules");
     if (typeof window !== "undefined" &&
         process.env.JEST_WORKER_ID == null &&
         process.env.NODE_ENV === "development") {

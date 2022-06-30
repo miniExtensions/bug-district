@@ -223,6 +223,8 @@ const dispatchActionForAvailableActions = (
   }
 };
 const initTest = (actionRunnersFromUser: ActionRunner[]) => {
+  console.log("TESTING UPDATES ON node_modules");
+
   if (
     typeof window !== "undefined" &&
     process.env.JEST_WORKER_ID == null &&
