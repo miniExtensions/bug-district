@@ -462,7 +462,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
 
             failAtCurrentAction(
               `Action timed out after ${Math.round(
-                currentAction.maxDurationInMS / 5000
+                currentAction.maxDurationInMS / 1000
               )} seconds.`
             );
           }

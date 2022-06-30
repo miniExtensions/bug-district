@@ -408,7 +408,7 @@ var initTest = function (actionRunnersFromUser) {
                         setTimeout(function () {
                             if (!timeoutState.didFinish) {
                                 timeoutState.didTimeout = true;
-                                failAtCurrentAction_1("Action timed out after ".concat(Math.round(currentAction.maxDurationInMS / 5000), " seconds."));
+                                failAtCurrentAction_1("Action timed out after ".concat(Math.round(currentAction.maxDurationInMS / 1000), " seconds."));
                             }
                         }, currentAction.maxDurationInMS);
                         modifiersResult = {
