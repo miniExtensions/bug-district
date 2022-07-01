@@ -1,9 +1,15 @@
-import { flattenArray } from './flattenArray';
+import { flattenArray } from "./flattenArray";
 import {
-    ActionGeneratorIterator, ActionRunner, ActionRunnerArgument, GenerateActionsFunc,
-    GeneratedAction, GeneratedActionInternalAction, TestRunGlobals
-} from './types';
+  ActionGeneratorIterator,
+  ActionRunner,
+  ActionRunnerArgument,
+  GenerateActionsFunc,
+  GeneratedAction,
+  GeneratedActionInternalAction,
+  TestRunGlobals,
+} from "./types";
 
+console.log("TESTS ARE RUNNING");
 export type {
   ActionRunner,
   ActionGeneratorIterator,
@@ -410,10 +416,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       }
       // Set default values
       actionRunner.arguments.map((actionArg) => {
-        console.log(`checking argument: ${actionArg.id}`);
-
-        console.log(currentAction.argsData[actionArg.id]);
-
         if (
           actionArg.defaultValue != null &&
           !currentAction.argsData[actionArg.id]
@@ -445,7 +447,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         setTimeout(() => {
           // try again in a momment
           processNextAction();
-        }, 1000);
+        }, 2000);
         return;
       }
 
