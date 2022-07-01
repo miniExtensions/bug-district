@@ -1,8 +1,10 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as puppeteer from 'puppeteer';
+import * as fs from "fs";
+import * as path from "path";
+import * as puppeteer from "puppeteer";
 
-import { chunkArray } from './chunkArray';
+import { chunkArray } from "./chunkArray";
+
+console.log("RUNNING TESTS");
 
 const transformObjPropertiesToPrintable = (
   properties?: puppeteer.Protocol.Runtime.PropertyPreview[]
