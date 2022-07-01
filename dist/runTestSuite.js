@@ -41,6 +41,7 @@ exports.wait = void 0;
 var fs = require("fs");
 var path = require("path");
 var puppeteer = require("puppeteer");
+console.log("RUNNING TESTS");
 var transformObjPropertiesToPrintable = function (properties) {
     if (properties == null)
         return "null value";
