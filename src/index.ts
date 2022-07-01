@@ -1,9 +1,15 @@
-import { flattenArray } from './flattenArray';
+import { flattenArray } from "./flattenArray";
 import {
-    ActionGeneratorIterator, ActionRunner, ActionRunnerArgument, GenerateActionsFunc,
-    GeneratedAction, GeneratedActionInternalAction, TestRunGlobals
-} from './types';
+  ActionGeneratorIterator,
+  ActionRunner,
+  ActionRunnerArgument,
+  GenerateActionsFunc,
+  GeneratedAction,
+  GeneratedActionInternalAction,
+  TestRunGlobals,
+} from "./types";
 
+console.log("TESTS ARE RUNNING");
 export type {
   ActionRunner,
   ActionGeneratorIterator,

@@ -58,6 +58,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeTestActions = void 0;
 var flattenArray_1 = require("./flattenArray");
+console.log("TESTS ARE RUNNING");
 var deleteAllCookies = function () {
     var cookies = document.cookie.split(";");
     for (var i = 0; i < cookies.length; i++) {
