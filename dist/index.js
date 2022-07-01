@@ -217,7 +217,6 @@ var dispatchActionForAvailableActions = function (actionRunners, globalState) {
     }
 };
 var initTest = function (actionRunnersFromUser) {
-    console.log("TESTING UPDATES ON node_modules");
     if (typeof window !== "undefined" &&
         process.env.JEST_WORKER_ID == null &&
         process.env.NODE_ENV === "development") {
@@ -286,7 +285,6 @@ var initTest = function (actionRunnersFromUser) {
                         if (!e.data)
                             return [2 /*return*/];
                         if (!(e && e.data && e.data.source === "ui-tester")) return [3 /*break*/, 3];
-                        console.log("TEST DATA::", e.data);
                         if (!(e.data.type === "start-test" && e.data.actions)) return [3 /*break*/, 2];
                         actions = e.data.actions;
                         disableGenerators = e.data.disableGenerators;
@@ -370,7 +368,6 @@ var initTest = function (actionRunnersFromUser) {
                             throw new Error("processNextAction called when not in running state.");
                         }
                         currentActionIndex = currentRunningTestState.status.currentActionIndex;
-                        console.log("Running action at index", currentActionIndex);
                         currentAction = currentRunningTestState.actions[currentActionIndex];
                         isLastAction = currentActionIndex === currentRunningTestState.actions.length - 1;
                         actionRunner = actionRunners_1.find(function (actionRunner) { return currentAction.id === actionRunner.id; });
@@ -381,8 +378,6 @@ var initTest = function (actionRunnersFromUser) {
                         // Set default values
                         actionRunner.arguments.map(function (actionArg) {
                             var _a;
-                            console.log("checking argument: ".concat(actionArg.id));
-                            console.log(currentAction.argsData[actionArg.id]);
                             if (actionArg.defaultValue != null &&
                                 !currentAction.argsData[actionArg.id]) {
                                 console.log("Setting default value for \"".concat((_a = actionArg.label) !== null && _a !== void 0 ? _a : actionArg.id, "\", set to: ").concat(actionArg.defaultValue));
@@ -397,7 +392,7 @@ var initTest = function (actionRunnersFromUser) {
                             setTimeout(function () {
                                 // try again in a momment
                                 processNextAction_1();
-                            }, 1000);
+                            }, 2000);
                             return [2 /*return*/];
                         }
                         timeoutState = {
