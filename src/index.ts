@@ -303,7 +303,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
         if (!e.data) return;
 
         if (e && e.data && e.data.source === "ui-tester") {
-          console.log("TEST DATA::", e.data);
           if (e.data.type === "start-test" && e.data.actions) {
             const actions = e.data.actions as PageRunnerAction[];
             const disableGenerators = e.data.disableGenerators as boolean;
