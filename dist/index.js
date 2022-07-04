@@ -237,7 +237,7 @@ var initTest = function (actionRunnersFromUser) {
             currentRunningTestState: null,
             parentWindowRecievedAvailableAction: false,
         };
-        var failAtCurrentAction_1 = function (errorMessage) {
+        var failAtCurrentAction_1 = function (args) {
             var currentRunningTestState = globalState_1.currentRunningTestState;
             if (!currentRunningTestState ||
                 currentRunningTestState.status.type !== "running") {
@@ -247,14 +247,14 @@ var initTest = function (actionRunnersFromUser) {
             var newStatus = {
                 type: "failure",
                 failedActionIndex: currentActionIndex,
-                errorMessage: errorMessage,
+                errorMessage: args.message,
             };
             dispatchActionSetMostRecentTestState_1({
                 state: __assign(__assign({}, currentRunningTestState), { status: newStatus }),
             });
-            console.log("FAILED ACTION ERROR MESSAGE: ".concat(errorMessage));
+            console.log("FAILED ACTION ERROR MESSAGE: ".concat(args.message), args === null || args === void 0 ? void 0 : args.stack);
             dispatchActionFailedEvent({
-                errorMessage: errorMessage,
+                errorMessage: args.message + "\n\n\n" + (args === null || args === void 0 ? void 0 : args.stack),
                 actionIndex: currentActionIndex,
             });
         };
@@ -372,7 +372,9 @@ var initTest = function (actionRunnersFromUser) {
                         isLastAction = currentActionIndex === currentRunningTestState.actions.length - 1;
                         actionRunner = actionRunners_1.find(function (actionRunner) { return currentAction.id === actionRunner.id; });
                         if (!actionRunner) {
-                            failAtCurrentAction_1("No action runner found for action with id ".concat(currentAction.id, "."));
+                            failAtCurrentAction_1({
+                                message: "No action runner found for action with id ".concat(currentAction.id, "."),
+                            });
                             return [2 /*return*/];
                         }
                         // Set default values
@@ -408,7 +410,9 @@ var initTest = function (actionRunnersFromUser) {
                         setTimeout(function () {
                             if (!timeoutState.didFinish) {
                                 timeoutState.didTimeout = true;
-                                failAtCurrentAction_1("Action timed out after ".concat(Math.round(currentAction.maxDurationInMS / 1000), " seconds."));
+                                failAtCurrentAction_1({
+                                    message: "Action timed out after ".concat(Math.round(currentAction.maxDurationInMS / 1000), " seconds."),
+                                });
                             }
                         }, currentAction.maxDurationInMS);
                         modifiersResult = {
@@ -514,7 +518,7 @@ var initTest = function (actionRunnersFromUser) {
                         e_1 = _b.sent();
                         timeoutState.didFinish = true;
                         // @ts-ignore
-                        failAtCurrentAction_1(e_1.message);
+                        failAtCurrentAction_1({ message: e_1.message, stacktrace: e_1.stack });
                         return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
                 }
