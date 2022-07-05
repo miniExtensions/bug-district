@@ -405,6 +405,7 @@ var initTest = function (actionRunnersFromUser) {
                     case 1:
                         _b.trys.push([1, 9, , 10]);
                         // HEEERE
+                        console.log("DEEEELAAAAAAAAAAAYYYYYYYY \n\n\n\n\n");
                         console.log(currentRunningTestState.delayBetweenActionsInMS);
                         return [4 /*yield*/, wait_1(currentRunningTestState.delayBetweenActionsInMS)];
                     case 2:
