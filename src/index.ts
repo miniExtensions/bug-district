@@ -454,6 +454,9 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       };
 
       try {
+        // HEEERE
+        console.log(currentRunningTestState.delayBetweenActionsInMS);
+
         await wait(currentRunningTestState.delayBetweenActionsInMS);
 
         setTimeout(() => {
