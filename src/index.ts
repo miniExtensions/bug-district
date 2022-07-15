@@ -9,7 +9,6 @@ import {
   TestRunGlobals,
 } from "./types";
 
-console.log("TESTS ARE RUNNING");
 export type {
   ActionRunner,
   ActionGeneratorIterator,
