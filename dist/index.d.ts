@@ -1,13 +1,5 @@
-import {
-    ActionGeneratorIterator, ActionRunner, GeneratedActionInternalAction, TestRunGlobals
-} from './types';
-
-export type {
-  ActionRunner,
-  ActionGeneratorIterator,
-  TestRunGlobals,
-  GeneratedActionInternalAction,
-};
+import { ActionGeneratorIterator, ActionRunner, GeneratedActionInternalAction, TestRunGlobals } from './types';
+export type { ActionRunner, ActionGeneratorIterator, TestRunGlobals, GeneratedActionInternalAction, };
 export declare const initializeTestActions: (args: {
-  actions: ActionRunner[];
+    actions: ActionRunner[];
 }) => void;

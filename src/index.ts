@@ -1,15 +1,9 @@
-import { flattenArray } from "./flattenArray";
+import { flattenArray } from './flattenArray';
 import {
-  ActionGeneratorIterator,
-  ActionRunner,
-  ActionRunnerArgument,
-  GenerateActionsFunc,
-  GeneratedAction,
-  GeneratedActionInternalAction,
-  TestRunGlobals,
-} from "./types";
+    ActionGeneratorIterator, ActionRunner, ActionRunnerArgument, GenerateActionsFunc,
+    GeneratedAction, GeneratedActionInternalAction, TestRunGlobals
+} from './types';
 
-console.log("TESTS ARE RUNNING");
 export type {
   ActionRunner,
   ActionGeneratorIterator,
@@ -256,7 +250,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       parentWindowRecievedAvailableAction: false,
     };
 
-    const failAtCurrentAction = (errorMessage: string) => {
+    const failAtCurrentAction = (args: { message: string; stack?: string }) => {
       const { currentRunningTestState } = globalState;
       if (
         !currentRunningTestState ||
@@ -273,7 +267,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       const newStatus: CurrentRunningTestState["status"] = {
         type: "failure",
         failedActionIndex: currentActionIndex,
-        errorMessage,
+        errorMessage: args.message,
       };
 
       dispatchActionSetMostRecentTestState({
@@ -281,7 +275,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       });
 
       dispatchActionFailedEvent({
-        errorMessage,
+        errorMessage: args.message + "\n\n\n" + args?.stack,
         actionIndex: currentActionIndex,
       });
     };
@@ -398,7 +392,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
 
       const currentActionIndex =
         currentRunningTestState.status.currentActionIndex;
-      console.log("Running action at index", currentActionIndex);
       const currentAction = currentRunningTestState.actions[currentActionIndex];
 
       const isLastAction =
@@ -409,9 +402,9 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       );
 
       if (!actionRunner) {
-        failAtCurrentAction(
-          `No action runner found for action with id ${currentAction.id}.`
-        );
+        failAtCurrentAction({
+          message: `No action runner found for action with id ${currentAction.id}.`,
+        });
         return;
       }
       // Set default values
@@ -466,11 +459,11 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
           if (!timeoutState.didFinish) {
             timeoutState.didTimeout = true;
 
-            failAtCurrentAction(
-              `Action timed out after ${Math.round(
+            failAtCurrentAction({
+              message: `Action timed out after ${Math.round(
                 currentAction.maxDurationInMS / 1000
-              )} seconds.`
-            );
+              )} seconds.`,
+            });
           }
         }, currentAction.maxDurationInMS);
 
@@ -608,7 +601,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       } catch (e) {
         timeoutState.didFinish = true;
         // @ts-ignore
-        failAtCurrentAction(e.message);
+        failAtCurrentAction({ message: e.message, stack: e.stack });
       }
     };
   }
