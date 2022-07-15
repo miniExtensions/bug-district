@@ -601,7 +601,7 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       } catch (e) {
         timeoutState.didFinish = true;
         // @ts-ignore
-        failAtCurrentAction({ message: e.message, stacktrace: e.stack });
+        failAtCurrentAction({ message: e.message, stack: e.stack });
       }
     };
   }
