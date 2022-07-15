@@ -273,7 +273,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       dispatchActionSetMostRecentTestState({
         state: { ...currentRunningTestState, status: newStatus },
       });
-      console.log(`FAILED ACTION ERROR MESSAGE: ${args.message}`, args?.stack);
 
       dispatchActionFailedEvent({
         errorMessage: args.message + "\n\n\n" + args?.stack,
@@ -454,10 +453,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
       };
 
       try {
-        // HEEERE
-        console.log("DEEEELAAAAAAAAAAAYYYYYYYY \n\n\n\n\n");
-        console.log(currentRunningTestState.delayBetweenActionsInMS);
-
         await wait(currentRunningTestState.delayBetweenActionsInMS);
 
         setTimeout(() => {

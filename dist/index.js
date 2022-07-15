@@ -252,7 +252,6 @@ var initTest = function (actionRunnersFromUser) {
             dispatchActionSetMostRecentTestState_1({
                 state: __assign(__assign({}, currentRunningTestState), { status: newStatus }),
             });
-            console.log("FAILED ACTION ERROR MESSAGE: ".concat(args.message), args === null || args === void 0 ? void 0 : args.stack);
             dispatchActionFailedEvent({
                 errorMessage: args.message + "\n\n\n" + (args === null || args === void 0 ? void 0 : args.stack),
                 actionIndex: currentActionIndex,
@@ -404,9 +403,6 @@ var initTest = function (actionRunnersFromUser) {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 9, , 10]);
-                        // HEEERE
-                        console.log("DEEEELAAAAAAAAAAAYYYYYYYY \n\n\n\n\n");
-                        console.log(currentRunningTestState.delayBetweenActionsInMS);
                         return [4 /*yield*/, wait_1(currentRunningTestState.delayBetweenActionsInMS)];
                     case 2:
                         _b.sent();
