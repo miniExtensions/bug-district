@@ -397,7 +397,6 @@ const initTest = (actionRunnersFromUser: ActionRunner[]) => {
 
       const currentActionIndex =
         currentRunningTestState.status.currentActionIndex;
-      console.log("Running action at index", currentActionIndex);
       const currentAction = currentRunningTestState.actions[currentActionIndex];
 
       const isLastAction =
